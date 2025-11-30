@@ -1229,10 +1229,17 @@
         }
 
         function showResults() {
+            const percentage = Math.round((score / quizQuestions.length) * 100);
+
+            // Death sequence for failing (< 50%)
+            if (percentage < 50) {
+                showDeathSequence();
+                return;
+            }
+
             quizCard.style.display = 'none';
             quizResult.style.display = 'block';
 
-            const percentage = Math.round((score / quizQuestions.length) * 100);
             finalScore.textContent = `${score}/${quizQuestions.length}`;
 
             if (percentage === 100) {
@@ -1241,9 +1248,268 @@
                 resultMessage.textContent = 'Great job! You know your planets well!';
             } else if (percentage >= 50) {
                 resultMessage.textContent = 'Good effort! Keep learning about space!';
-            } else {
-                resultMessage.textContent = 'Keep exploring! There is so much to learn!';
             }
+        }
+
+        function showDeathSequence() {
+            // Create death screen overlay
+            const deathScreen = document.createElement('div');
+            deathScreen.id = 'death-screen';
+            deathScreen.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: black;
+                z-index: 9999;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                opacity: 0;
+                transition: opacity 2s;
+            `;
+            document.body.appendChild(deathScreen);
+
+            // Fade to black
+            setTimeout(() => {
+                deathScreen.style.opacity = '1';
+            }, 100);
+
+            // Show "YOU FAILED" text after 3 seconds
+            setTimeout(() => {
+                const failText = document.createElement('div');
+                failText.style.cssText = `
+                    color: #ff0000;
+                    font-size: 4rem;
+                    font-family: 'Orbitron', sans-serif;
+                    text-align: center;
+                    opacity: 0;
+                    transition: opacity 1.5s;
+                    text-shadow: 0 0 20px #ff0000;
+                `;
+                failText.textContent = 'YOU FAILED';
+                deathScreen.appendChild(failText);
+
+                setTimeout(() => {
+                    failText.style.opacity = '1';
+                }, 100);
+
+                // Show revive button after 2 more seconds
+                setTimeout(() => {
+                    showReviveButton(deathScreen);
+                }, 2000);
+            }, 3000);
+        }
+
+        function showReviveButton(deathScreen) {
+            const reviveBtn = document.createElement('button');
+            reviveBtn.textContent = 'REVIVE';
+            reviveBtn.style.cssText = `
+                margin-top: 3rem;
+                padding: 1.5rem 4rem;
+                font-size: 1.5rem;
+                font-family: 'Orbitron', sans-serif;
+                background: linear-gradient(135deg, #00d4ff, #0099ff);
+                color: white;
+                border: none;
+                border-radius: 10px;
+                cursor: pointer;
+                opacity: 0;
+                transition: all 0.3s;
+                box-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+            `;
+            deathScreen.appendChild(reviveBtn);
+
+            setTimeout(() => {
+                reviveBtn.style.opacity = '1';
+            }, 100);
+
+            reviveBtn.addEventListener('click', () => {
+                showErrorMessage(deathScreen, reviveBtn);
+            });
+
+            reviveBtn.addEventListener('mouseenter', () => {
+                reviveBtn.style.transform = 'scale(1.05)';
+                reviveBtn.style.boxShadow = '0 0 50px rgba(0, 212, 255, 0.8)';
+            });
+
+            reviveBtn.addEventListener('mouseleave', () => {
+                reviveBtn.style.transform = 'scale(1)';
+                reviveBtn.style.boxShadow = '0 0 30px rgba(0, 212, 255, 0.5)';
+            });
+        }
+
+        function showErrorMessage(deathScreen, reviveBtn) {
+            reviveBtn.style.opacity = '0';
+
+            setTimeout(() => {
+                reviveBtn.remove();
+
+                const errorText = document.createElement('div');
+                errorText.style.cssText = `
+                    color: #ff0000;
+                    font-size: 2.5rem;
+                    font-family: 'Orbitron', sans-serif;
+                    text-align: center;
+                    opacity: 0;
+                    transition: opacity 1s;
+                    margin-top: 2rem;
+                `;
+                errorText.textContent = 'ERROR: Death in Space is Permanent';
+                deathScreen.appendChild(errorText);
+
+                setTimeout(() => {
+                    errorText.style.opacity = '1';
+                }, 100);
+
+                // Show "Or pay up" text
+                setTimeout(() => {
+                    const payText = document.createElement('div');
+                    payText.style.cssText = `
+                        color: #888;
+                        font-size: 1.2rem;
+                        font-family: 'Orbitron', sans-serif;
+                        text-align: center;
+                        opacity: 0;
+                        transition: opacity 1s;
+                        margin-top: 1rem;
+                        cursor: pointer;
+                    `;
+                    payText.textContent = 'Or pay up...';
+                    deathScreen.appendChild(payText);
+
+                    setTimeout(() => {
+                        payText.style.opacity = '0.7';
+                    }, 100);
+
+                    payText.addEventListener('click', () => {
+                        showPaymentPopup(deathScreen);
+                    });
+
+                    payText.addEventListener('mouseenter', () => {
+                        payText.style.opacity = '1';
+                        payText.style.color = '#00d4ff';
+                    });
+
+                    payText.addEventListener('mouseleave', () => {
+                        payText.style.opacity = '0.7';
+                        payText.style.color = '#888';
+                    });
+                }, 1500);
+            }, 300);
+        }
+
+        function showPaymentPopup(deathScreen) {
+            const popup = document.createElement('div');
+            popup.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: linear-gradient(135deg, #1a1a2e, #16213e);
+                padding: 3rem;
+                border-radius: 20px;
+                border: 2px solid #00d4ff;
+                box-shadow: 0 0 50px rgba(0, 212, 255, 0.5);
+                z-index: 10000;
+                opacity: 0;
+                transition: opacity 0.5s;
+                max-width: 500px;
+                width: 90%;
+            `;
+
+            popup.innerHTML = `
+                <h2 style="color: #00d4ff; font-family: 'Orbitron', sans-serif; text-align: center; margin-bottom: 2rem; font-size: 2rem;">
+                    SPACE REVIVAL SERVICE
+                </h2>
+                <form id="payment-form" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <input type="text" placeholder="Full Name" required
+                           style="padding: 1rem; border-radius: 8px; border: 2px solid #00d4ff; background: rgba(0, 212, 255, 0.1); color: white; font-family: 'Inter', sans-serif; font-size: 1rem;">
+                    <input type="text" placeholder="Credit Card Number" required
+                           style="padding: 1rem; border-radius: 8px; border: 2px solid #00d4ff; background: rgba(0, 212, 255, 0.1); color: white; font-family: 'Inter', sans-serif; font-size: 1rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <input type="text" placeholder="MM/YY" required
+                               style="padding: 1rem; border-radius: 8px; border: 2px solid #00d4ff; background: rgba(0, 212, 255, 0.1); color: white; font-family: 'Inter', sans-serif; font-size: 1rem;">
+                        <input type="text" placeholder="CVV" required
+                               style="padding: 1rem; border-radius: 8px; border: 2px solid #00d4ff; background: rgba(0, 212, 255, 0.1); color: white; font-family: 'Inter', sans-serif; font-size: 1rem;">
+                    </div>
+                    <button type="submit" style="padding: 1.5rem; background: linear-gradient(135deg, #00d4ff, #0099ff); color: white; border: none; border-radius: 10px; font-family: 'Orbitron', sans-serif; font-size: 1.2rem; cursor: pointer; margin-top: 1rem;">
+                        COMPLETE PAYMENT - $999.99
+                    </button>
+                    <div style="color: rgba(255, 255, 255, 0.05); font-size: 0.5rem; text-align: center; margin-top: -0.5rem;">
+                        (not real)
+                    </div>
+                </form>
+            `;
+
+            deathScreen.appendChild(popup);
+
+            setTimeout(() => {
+                popup.style.opacity = '1';
+            }, 100);
+
+            const form = popup.querySelector('#payment-form');
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                showJokeReveal(deathScreen, popup);
+            });
+        }
+
+        function showJokeReveal(deathScreen, popup) {
+            popup.style.opacity = '0';
+
+            setTimeout(() => {
+                popup.remove();
+
+                const jokePopup = document.createElement('div');
+                jokePopup.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: linear-gradient(135deg, #1a1a2e, #16213e);
+                    padding: 3rem;
+                    border-radius: 20px;
+                    border: 2px solid #00ff00;
+                    box-shadow: 0 0 50px rgba(0, 255, 0, 0.5);
+                    z-index: 10001;
+                    opacity: 0;
+                    transition: opacity 0.5s;
+                    max-width: 600px;
+                    width: 90%;
+                    text-align: center;
+                `;
+
+                jokePopup.innerHTML = `
+                    <h2 style="color: #00ff00; font-family: 'Orbitron', sans-serif; font-size: 3rem; margin-bottom: 1.5rem;">
+                        😂 GOTCHA!
+                    </h2>
+                    <p style="color: white; font-family: 'Inter', sans-serif; font-size: 1.3rem; line-height: 1.8; margin-bottom: 2rem;">
+                        Did you really think we'd charge you $999.99 for failing a space quiz?
+                        <br><br>
+                        <strong style="color: #00d4ff;">No payment was processed!</strong>
+                        <br><br>
+                        Maybe study the planets a bit more next time! 🚀
+                    </p>
+                    <button id="close-joke" style="padding: 1.5rem 3rem; background: linear-gradient(135deg, #00d4ff, #0099ff); color: white; border: none; border-radius: 10px; font-family: 'Orbitron', sans-serif; font-size: 1.2rem; cursor: pointer;">
+                        TRY AGAIN
+                    </button>
+                `;
+
+                deathScreen.appendChild(jokePopup);
+
+                setTimeout(() => {
+                    jokePopup.style.opacity = '1';
+                }, 100);
+
+                const closeBtn = jokePopup.querySelector('#close-joke');
+                closeBtn.addEventListener('click', () => {
+                    deathScreen.remove();
+                    restartQuiz();
+                });
+            }, 500);
         }
 
         function restartQuiz() {
